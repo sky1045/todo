@@ -1,0 +1,24 @@
+controller:
+  ingressClass: nginx
+  service:
+    annotations: 
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+      service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:ap-northeast-2:154172821752:certificate/11bc0f3c-6cb1-4b4c-8a9e-20a153f0aa2a"
+      service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+    targetPorts:
+      http: http
+      https: special
+  containerPort:
+    http: 80
+    https: 443
+    special: 8000
+  config:
+    ssl-redirect: "false" # we use `special` port to control ssl redirection
+    server-snippet: |
+      listen 8000;
+      if ( $server_port = 80 ) {
+         return 308 https://$host$request_uri;
+      }
